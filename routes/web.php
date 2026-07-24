@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\BookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,14 +16,13 @@ use App\Http\Controllers\GenreController;
 */
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('genres.index');
 });
 
 Route::middleware('auth')->group(function () {
     Route::resource('genres', GenreController::class);
+    Route::resource('books', BookController::class);
 
-    Route::get('/books', fn() => '書籍準備中')->name('books.index');
-    Route::get('/books/create', fn () => '書籍登録準備中')->name('books.create');
     Route::get('/ranking', fn () => 'ランキング準備中')->name('ranking.index');
     Route::get('/favorites', fn () => 'お気に入り準備中')->name('favorites.index');
 });

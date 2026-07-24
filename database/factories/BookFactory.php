@@ -21,7 +21,7 @@ class BookFactory extends Factory
             'title' => fake()->sentence(),
             'author' => fake()->name(),
             'isbn' => fake()->unique()->numerify('#############'),
-            'publisher' => fake()->company(),
+            'published_date' => fake()->date(),
             'description' => fake()->text(200),
             'image_url' => fake()->imageUrl(),
             'created_by' => User::factory(),
