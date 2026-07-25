@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\ReviewController;
-use App\Models\Book;
+use App\Http\Controllers\FavoriteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,10 +37,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])
         ->name('reviews.destroy');
     
-    //お気に入り機能実装前の仮ルート
-    Route::post('/books/{book}/favorite', function (Book $book) {
-        return redirect()->route('books.show', $book);
-    })->name('favorites.toggle');
+    Route::get('/favorites', [FavoriteController::class, 'index'])
+        ->name('favorites.index');
+
+    Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])
+        ->name('favorites.toggle');
 
     //いいね機能実装前の仮ルート
     Route::post('/reviews/{review}/like', function ($review) {
@@ -48,5 +49,4 @@ Route::middleware('auth')->group(function () {
     })->name('reviews.like');
 
     Route::get('/ranking', fn () => 'ランキング準備中')->name('ranking.index');
-    Route::get('/favorites', fn () => 'お気に入り準備中')->name('favorites.index');
 });
