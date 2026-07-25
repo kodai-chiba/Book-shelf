@@ -5,6 +5,7 @@ use App\Http\Controllers\GenreController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\LikeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,10 +44,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])
         ->name('favorites.toggle');
 
-    //いいね機能実装前の仮ルート
-    Route::post('/reviews/{review}/like', function ($review) {
-    return back();
-    })->name('reviews.like');
+    Route::post('/reviews/{review}/like', [LikeController::class, 'toggle'])
+        ->name('reviews.like');
 
     Route::get('/ranking', fn () => 'ランキング準備中')->name('ranking.index');
 });
