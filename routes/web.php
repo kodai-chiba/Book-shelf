@@ -6,6 +6,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\LikeController;
+use App\Http\Controllers\RankingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +47,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/reviews/{review}/like', [LikeController::class, 'toggle'])
         ->name('reviews.like');
-
-    Route::get('/ranking', fn () => 'ランキング準備中')->name('ranking.index');
 });
+
+    Route::get('/ranking', [RankingController::class, 'index'])
+        ->name('ranking.index');
