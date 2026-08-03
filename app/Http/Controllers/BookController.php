@@ -67,6 +67,8 @@ class BookController extends Controller
      */
     public function edit(Book $book)
     {
+        $this->authorize('update', $book);
+
         $genres = Genre::all();
 
         $book->load('genres');
@@ -79,6 +81,8 @@ class BookController extends Controller
      */
     public function update(BookRequest $request, Book $book)
     {
+        $this->authorize('update', $book);
+
         $validated = $request->validated();
 
         $genres = $validated['genres'];
@@ -98,6 +102,8 @@ class BookController extends Controller
      */
     public function destroy(Book $book)
     {
+        $this->authorize('delete', $book);
+        
         $book->delete();
 
         return redirect()
