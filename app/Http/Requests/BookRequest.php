@@ -38,14 +38,14 @@ class BookRequest extends FormRequest
             ],
 
             'isbn' => [
-                'required',
+                'nullable',
                 'string',
                 'digits:13',
                 Rule::unique('books')->ignore($book),
             ],
 
             'published_date' => [
-                'required',
+                'nullable',
                 'date',
             ],
 
@@ -85,12 +85,10 @@ class BookRequest extends FormRequest
             'author.string' => '著者名は文字列で入力してください。',
             'author.max' => '著者名は255文字以内で入力してください。',
 
-            'isbn.required' => 'ISBNを入力してください。',
             'isbn.string' => 'ISBNは文字列で入力してください。',
             'isbn.digits' => 'ISBNは13桁で入力してください。',
             'isbn.unique' => 'このISBNはすでに登録されています。',
 
-            'published_date.required' => '出版日を入力してください。',
             'published_date.date' => '出版日は正しい日付で入力してください。',
 
             'description.string' => '説明は文字列で入力してください。',
