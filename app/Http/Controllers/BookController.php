@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Genre;
 use App\Models\Book;
 use App\Http\Requests\BookRequest;
+use Illuminate\Support\Facades\Http;
 
 class BookController extends Controller
 {
@@ -109,5 +110,50 @@ class BookController extends Controller
         return redirect()
             ->route('books.index')
             ->with('success', '書籍を削除しました。');
+    }
+
+    public function searchByIsbn(string $isbn)
+    {
+        if (!preg_match('/^\d{13}$/', $isbn)) {
+            return response()->json([
+                'error' => 'ISBNは13桁の数字で入力してください。',
+            ], 422);
+        }
+
+        $response = Http::get('https://www.googleapis.com/books/v1/volumes', [
+            'q' => 'isbn:' . $isbn,
+            'key' => config('services.google_books.key'),
+        ]);
+
+        if ($response->failed()) {
+            return response()->json([
+                'error' => '書籍情報の取得に失敗しました。',
+            ], 500);
+        }
+
+        $data = $response->json();
+
+        if (empty($data['items'])) {
+            return response()->json([
+                'error' => '該当する書籍が見つかりませんでした。',
+            ], 404);
+        }
+
+        $volumeInfo = $data['items'][0]['volumeInfo'];
+
+        $publishedDate = $volumeInfo['publishedDate'] ?? null;
+
+        if ($publishedDate && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $publishedDate)) {
+            $publishedDate = null;
+        }
+
+        return response()->json([
+            'title' => $volumeInfo['title'] ?? null,
+            'author' => $volumeInfo['authors'][0] ?? null,
+            'published_date' => $publishedDate,
+            'description' => $volumeInfo['description'] ?? null,
+            'image_url' => $volumeInfo['imageLinks']['thumbnail'] ?? null,
+            'isbn' => $isbn,
+        ]);
     }
 }

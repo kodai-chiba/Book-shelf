@@ -22,6 +22,10 @@ class Book extends Model
         'created_by',
     ];
 
+    protected $casts = [
+        'published_date' => 'date',
+    ];
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -40,5 +44,10 @@ class Book extends Model
     public function favorites(): HasMany
     {
         return $this->hasMany(Favorite::class);
+    }
+
+    public function readingPlans(): HasMany
+    {
+        return $this->hasMany(ReadingPlan::class);
     }
 }

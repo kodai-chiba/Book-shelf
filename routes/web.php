@@ -24,6 +24,23 @@ Route::get('/', function () {
 });
 
 Route::middleware('auth')->group(function () {
+
+    Route::get('/books/isbn/{isbn}', [BookController::class, 'searchByIsbn'])
+        ->name('books.isbn.search');
+
+    // 応用機能の仮ルート
+    Route::get('/reports', function () {
+        return 'マイレポート準備中';
+    })->name('reports.index');
+
+    Route::get('/reading-plans', function () {
+        return '読書計画準備中';
+    })->name('reading-plans.index');
+
+    Route::get('/notifications', function () {
+        return '通知機能準備中';
+    })->name('notifications.index');
+
     Route::resource('genres', GenreController::class);
     Route::resource('books', BookController::class);
 
