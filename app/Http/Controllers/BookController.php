@@ -14,9 +14,53 @@ class BookController extends Controller
      */
     public function index()
     {
-        $books = Book::with('genres')->paginate(10);
+        $query = Book::with('genres')
+            ->withAvg('reviews', 'rating');
 
-        return view('books.index', compact('books'));
+        if (request()->filled('keyword')) {
+            $keyword = request('keyword');
+
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'like', "%{$keyword}%")
+                    ->orWhere('author', 'like', "%{$keyword}%");
+            });
+        }
+
+        if (request()->filled('genre')) {
+            $genreId = request('genre');
+
+            $query->whereHas('genres', function ($q) use ($genreId) {
+                $q->where('genres.id', $genreId);
+            });
+        }
+
+        switch (request('sort')) {
+            case 'oldest':
+                $query->orderBy('created_at');
+                break;
+
+            case 'title':
+                $query->orderBy('title');
+                break;
+
+            case 'rating':
+                $query->orderByRaw('reviews_avg_rating IS NULL')
+                    ->orderByDesc('reviews_avg_rating');
+                break;
+
+            case 'newest':
+            default:
+                $query->orderByDesc('created_at');
+                break;
+        }
+
+        $books = $query
+            ->paginate(10)
+            ->withQueryString();
+
+        $genres = Genre::all();
+
+        return view('books.index', compact('books', 'genres'));
     }
 
     /**
