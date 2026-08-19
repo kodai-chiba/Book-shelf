@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\ReadingPlanStatus;
 
 class ReadingPlan extends Model
 {
@@ -17,6 +18,17 @@ class ReadingPlan extends Model
         'status',
         'completed_at',
     ];
+
+    protected $casts = [
+        'due_date' => 'date',
+        'completed_at' => 'datetime',
+        'status' => ReadingPlanStatus::class,
+    ];
+
+    public function getTargetDateAttribute()
+    {
+        return $this->due_date;
+    }
 
     public function user(): BelongsTo
     {
