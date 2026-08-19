@@ -7,6 +7,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ReadingPlanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,9 +34,12 @@ Route::middleware('auth')->group(function () {
         return 'マイレポート準備中';
     })->name('reports.index');
 
-    Route::get('/reading-plans', function () {
-        return '読書計画準備中';
-    })->name('reading-plans.index');
+    Route::resource('reading-plans', ReadingPlanController::class)
+        ->except(['show'])
+        ->parameters(['reading-plans' => 'readingPlan']);
+
+    Route::post('/reading-plans/{readingPlan}/complete', [ReadingPlanController::class, 'complete'])
+        ->name('reading-plans.complete');
 
     Route::get('/notifications', function () {
         return '通知機能準備中';
