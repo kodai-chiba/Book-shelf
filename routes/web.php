@@ -8,6 +8,7 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ReadingPlanController;
+use App\Http\Controllers\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,7 +30,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/books/isbn/{isbn}', [BookController::class, 'searchByIsbn'])
         ->name('books.isbn.search');
 
-    // 応用機能の仮ルート
     Route::get('/reports', function () {
         return 'マイレポート準備中';
     })->name('reports.index');
@@ -41,9 +41,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/reading-plans/{readingPlan}/complete', [ReadingPlanController::class, 'complete'])
         ->name('reading-plans.complete');
 
-    Route::get('/notifications', function () {
-        return '通知機能準備中';
-    })->name('notifications.index');
+    Route::get('/notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])
+        ->name('notifications.read');
 
     Route::resource('genres', GenreController::class);
     Route::resource('books', BookController::class);
