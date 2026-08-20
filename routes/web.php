@@ -9,6 +9,7 @@ use App\Http\Controllers\LikeController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ReadingPlanController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,9 +31,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/books/isbn/{isbn}', [BookController::class, 'searchByIsbn'])
         ->name('books.isbn.search');
 
-    Route::get('/reports', function () {
-        return 'マイレポート準備中';
-    })->name('reports.index');
+    Route::get('/reports', [ReportController::class, 'index'])
+        ->name('reports.index');
 
     Route::resource('reading-plans', ReadingPlanController::class)
         ->except(['show'])
