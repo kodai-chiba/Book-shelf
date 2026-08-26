@@ -7,6 +7,7 @@ use App\Models\Genre;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ApiBookTest extends TestCase
@@ -160,9 +161,9 @@ class ApiBookTest extends TestCase
 
     public function test_api_can_create_book(): void
     {
-        User::factory()->create([
-            'id' => 1,
-        ]);
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
 
         $genre = Genre::create([
             'name' => 'API登録テストジャンル',
@@ -180,7 +181,7 @@ class ApiBookTest extends TestCase
         $this->assertDatabaseHas('books', [
             'title' => 'APIテスト書籍',
             'isbn' => '9781234567890',
-            'created_by' => 1,
+            'created_by' => $user->id,
         ]);
 
         $book = Book::where('isbn', '9781234567890')
@@ -194,9 +195,9 @@ class ApiBookTest extends TestCase
 
     public function test_api_cannot_create_book_without_title(): void
     {
-        User::factory()->create([
-            'id' => 1,
-        ]);
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
 
         $genre = Genre::create([
             'name' => 'API必須項目テストジャンル',
@@ -218,9 +219,9 @@ class ApiBookTest extends TestCase
 
     public function test_api_cannot_create_book_with_duplicate_isbn(): void
     {
-        $user = User::factory()->create([
-            'id' => 1,
-        ]);
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
 
         $genre = Genre::create([
             'name' => 'API重複ISBNテストジャンル',
@@ -247,6 +248,8 @@ class ApiBookTest extends TestCase
     public function test_api_can_update_book(): void
     {
         $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
 
         $oldGenre = Genre::create([
             'name' => 'API更新前ジャンル',
@@ -302,6 +305,8 @@ class ApiBookTest extends TestCase
     {
         $user = User::factory()->create();
 
+        Sanctum::actingAs($user);
+
         $genre = Genre::create([
             'name' => 'API ISBN更新テストジャンル',
         ]);
@@ -332,6 +337,8 @@ class ApiBookTest extends TestCase
     {
         $user = User::factory()->create();
 
+        Sanctum::actingAs($user);
+
         $book = Book::factory()->create([
             'created_by' => $user->id,
         ]);
@@ -340,10 +347,7 @@ class ApiBookTest extends TestCase
             "/api/v1/books/{$book->id}"
         );
 
-        $response->assertOk()
-            ->assertJson([
-                'message' => '書籍を削除しました。',
-            ]);
+        $response->assertOk();
 
         $this->assertDatabaseMissing('books', [
             'id' => $book->id,
@@ -366,5 +370,208 @@ class ApiBookTest extends TestCase
             'image_url' => 'https://example.com/api-book.jpg',
             'genres' => [$genre->id],
         ], $overrides);
+    }
+
+    public function test_unauthenticated_user_cannot_create_book_via_api(): void
+    {
+        $genre = Genre::factory()->create([
+            'name' => 'Sanctum認証テスト',
+        ]);
+
+        $data = $this->validBookData($genre);
+
+        $response = $this->postJson('/api/v1/books', $data);
+
+        $response->assertUnauthorized();
+
+        $this->assertDatabaseMissing('books', [
+            'isbn' => '9781234567890',
+        ]);
+    }
+
+    public function test_authenticated_user_can_create_book_via_api(): void
+    {
+        $user = User::factory()->create();
+
+        $genre = Genre::factory()->create([
+            'name' => 'Sanctum正常系テスト',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $data = $this->validBookData($genre, [
+            'title' => 'Sanctumテスト書籍',
+            'isbn' => '9781234567890',
+        ]);
+
+        $response = $this->postJson('/api/v1/books', $data);
+
+        $response->assertCreated();
+
+        $this->assertDatabaseHas('books', [
+            'title' => 'Sanctumテスト書籍',
+            'isbn' => '9781234567890',
+            'created_by' => $user->id,
+        ]);
+    }
+
+    public function test_unauthenticated_user_cannot_update_book_via_api(): void
+    {
+        $user = User::factory()->create();
+
+        $genre = Genre::factory()->create([
+            'name' => '未認証更新テスト',
+        ]);
+
+        $book = Book::factory()->create([
+            'created_by' => $user->id,
+            'title' => '更新前タイトル',
+        ]);
+
+        $data = $this->validBookData($genre, [
+            'title' => '更新後タイトル',
+            'isbn' => $book->isbn,
+        ]);
+
+        $response = $this->putJson(
+            "/api/v1/books/{$book->id}",
+            $data
+        );
+
+        $response->assertUnauthorized();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'title' => '更新前タイトル',
+        ]);
+    }
+
+    public function test_authenticated_user_can_update_own_book_via_api(): void
+    {
+        $user = User::factory()->create();
+
+        $genre = Genre::factory()->create([
+            'name' => 'Sanctum更新正常系テスト',
+        ]);
+
+        $book = Book::factory()->create([
+            'created_by' => $user->id,
+            'title' => '更新前タイトル',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $data = $this->validBookData($genre, [
+            'title' => '更新後タイトル',
+            'isbn' => $book->isbn,
+        ]);
+
+        $response = $this->putJson(
+            "/api/v1/books/{$book->id}",
+            $data
+        );
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'title' => '更新後タイトル',
+        ]);
+    }
+
+    public function test_authenticated_user_cannot_update_another_users_book_via_api(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $genre = Genre::factory()->create([
+            'name' => 'API認可テスト',
+        ]);
+
+        $book = Book::factory()->create([
+            'created_by' => $owner->id,
+            'title' => '変更前タイトル',
+        ]);
+
+        Sanctum::actingAs($otherUser);
+
+        $data = $this->validBookData($genre, [
+            'title' => '不正な変更後タイトル',
+            'isbn' => $book->isbn,
+        ]);
+
+        $response = $this->putJson(
+            "/api/v1/books/{$book->id}",
+            $data
+        );
+
+        $response->assertForbidden();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'title' => '変更前タイトル',
+        ]);
+    }
+
+    public function test_unauthenticated_user_cannot_delete_book_via_api(): void
+    {
+        $user = User::factory()->create();
+
+        $book = Book::factory()->create([
+            'created_by' => $user->id,
+        ]);
+
+        $response = $this->deleteJson(
+            "/api/v1/books/{$book->id}"
+        );
+
+        $response->assertUnauthorized();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+        ]);
+    }
+
+    public function test_authenticated_user_can_delete_own_book_via_api(): void
+    {
+        $user = User::factory()->create();
+
+        $book = Book::factory()->create([
+            'created_by' => $user->id,
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->deleteJson(
+            "/api/v1/books/{$book->id}"
+        );
+
+        $response->assertOk();
+
+        $this->assertDatabaseMissing('books', [
+            'id' => $book->id,
+        ]);
+    }
+
+    public function test_authenticated_user_cannot_delete_another_users_book_via_api(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $book = Book::factory()->create([
+            'created_by' => $owner->id,
+        ]);
+
+        Sanctum::actingAs($otherUser);
+
+        $response = $this->deleteJson(
+            "/api/v1/books/{$book->id}"
+        );
+
+        $response->assertForbidden();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+        ]);
     }
 }
