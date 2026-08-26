@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Book;
@@ -19,32 +18,57 @@ class ReviewSeeder extends Seeder
         $books = Book::all();
 
         $comments = [
-            'とても読みやすく、内容も分かりやすかったです。',
-            '学びが多く、もう一度読み返したい一冊です。',
-            '初心者にも理解しやすい内容でした。',
-            '実生活にも活かせる考え方が多かったです。',
-            '構成が分かりやすく、最後まで楽しく読めました。',
-            '印象に残る内容が多く、読後感も良かったです。',
-            'テーマが興味深く、深く考えさせられました。',
-            '具体例が多く、内容をイメージしやすかったです。',
+            1 => [
+                '自分には合わず、最後まで読むのが大変でした。',
+                '内容が少し分かりにくく、期待とは違いました。',
+                'もう少し詳しい説明が欲しいと感じました。',
+            ],
+            2 => [
+                '参考になる部分もありましたが、少し物足りなかったです。',
+                '興味深い内容でしたが、やや読みづらく感じました。',
+                '期待していた内容とは少し違いました。',
+            ],
+            3 => [
+                '全体的に読みやすく、参考になりました。',
+                '興味深い内容で、楽しく読むことができました。',
+                '良い部分も多く、勉強になりました。',
+            ],
+            4 => [
+                'とても読みやすく、内容も分かりやすかったです。',
+                '学びが多く、もう一度読み返したい一冊です。',
+                '実生活にも活かせる考え方が多かったです。',
+            ],
+            5 => [
+                '非常に素晴らしい内容で、多くの学びがありました。',
+                '何度でも読み返したいと思える一冊です。',
+                'とても印象に残り、人にもおすすめしたい本です。',
+            ],
         ];
 
-        $count = 0;
+        foreach (range(1, 5) as $rating) {
+            $reviewCount = rand(2, 4);
 
-        foreach ($books as $bookIndex => $book) {
-            foreach ($users as $userIndex => $user) {
-                if ($count >= 32) {
-                    break 2;
+            for ($i = 0; $i < $reviewCount; $i++) {
+                $book = $books->random();
+
+                $availableUsers = $users->filter(function ($user) use ($book) {
+                    return !Review::where('user_id', $user->id)
+                        ->where('book_id', $book->id)
+                        ->exists();
+                });
+
+                if ($availableUsers->isEmpty()) {
+                    continue;
                 }
+
+                $user = $availableUsers->random();
 
                 Review::create([
                     'user_id' => $user->id,
                     'book_id' => $book->id,
-                    'rating' => rand(3, 5),
-                    'comment' => $comments[$count % count($comments)],
+                    'rating' => $rating,
+                    'comment' => collect($comments[$rating])->random(),
                 ]);
-
-                $count++;
             }
         }
     }
