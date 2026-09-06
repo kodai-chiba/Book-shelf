@@ -117,9 +117,17 @@ composer install --ignore-platform-reqs
 
 ### 3. Google Books APIキーの取得
 
-ISBN検索機能ではGoogle Books APIを使用します。
+ISBN検索機能ではGoogle Books APIを使用するため、Google Books APIのAPIキーを取得します。
 
-Google Cloud Consoleでプロジェクトを作成し、Google Books APIを有効化したうえでAPIキーを取得してください。
+1. Google Cloud Consoleにアクセスし、Googleアカウントでログインします。
+2. 画面上部のプロジェクト選択から、新しいプロジェクトを作成します。
+3. 作成したプロジェクトを選択します。
+4. 左側のメニューから「APIとサービス」→「ライブラリ」を開きます。
+5. 検索欄で「Books API」を検索します。
+6. 「Books API」を選択し、「有効にする」をクリックします。
+7. 「APIとサービス」→「認証情報」を開きます。
+8. 「認証情報を作成」→「APIキー」を選択します。
+9. 作成されたAPIキーをコピーします。
 
 取得したAPIキーは、次の手順で作成する `.env` ファイルに設定します。
 
